@@ -1,26 +1,23 @@
-#determing the X,Y,Z, coordinates from a monocular webcam to unity using TCP sockets
-#testing program. Some things may not work
-
 import cv2
 import cvzone
 import socket
 
 from cvzone.FaceMeshModule import FaceMeshDetector
 
-host, port = "127.0.0.1", 25001 # server address
+host, port = "127.0.0.1", 25001
+data = "0,0,0"
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 cap = cv2.VideoCapture(1)
 detector = FaceMeshDetector(maxFaces=1)
-
-
 initial = True
+
+# Connect to the server and send the data
+sock.connect((host, port))
 
 while True:
     success, img = cap.read()
     img, faces = detector.findFaceMesh(img, draw=True)
-
-
     if faces:
         face = faces[0]
         pointLeft = face[145] #145 is point location for the left eye (shows x and y coordinates)
@@ -32,48 +29,32 @@ while True:
         W = 6.5 #eye distance in cm (near)
 
         #for focal length
-        #d = 60.96
-        #f = (w*d)/W  #493
+        #known_distance = 60.96
+        #f = (w*known_distance)/W  #493
         #print(f)
 
-        
-
-        #FOV is roughly 65 degrees
-
         #distance
-        f = 493
+        f = 493     #focal length
         d = (W*f)/w #distance
-        #print(d)
-        
 
-        #near =  px distance between eyes * dist to cam / IPD
-        #near = (w*d)/6.5
-        #print(near)
-
+        #When the camera turns on, the first pos of the face will be set as the initial value
         if initial:
             origin_X = (pointLeft[0] + pointRight[0])/2
             origin_Y = (pointLeft[1] + pointRight[1])/2    
             O = origin_X, origin_Y
             initial = False
-        #print("X =", origin_X, "Y =", origin_Y)
         
         X_pixel_displacement = (pointLeft[0] + pointRight[0])/2 - origin_X
         Y_pixel_displacement = (pointLeft[1] + pointRight[1])/2 - origin_Y
-        #print(X, Y)
 
         X_displacement = X_pixel_displacement * d / f
         Y_displacement = Y_pixel_displacement * d / f
 
-    data = X_displacement, Y_displacement, d    
-    #print(X_displacement, Y_displacement, d)
-    try:
-        #connect
-        sock.connect((host, port))
-        sock.sendall(data.encode("utf-8"))
-        response = sock.recv(1024).decode("utf-8")
-    finally:
-        sock.close()
-
+        #X and Y values converted to string to send over TCP to unity
+        data = str(X_displacement) +","+ str(Y_displacement) + "," + str(d)
+    
+    sock.sendall(data.encode("utf-8"))
+    print(data)
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
