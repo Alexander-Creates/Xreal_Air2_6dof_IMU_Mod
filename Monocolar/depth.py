@@ -55,7 +55,7 @@ while True:
         #X and Y values converted to string to send over TCP to unity
         data = str(X_displacement) +","+ str(Y_displacement) + "," + str(d)
     
-    sock.sendall(data.encode("utf-8"))
+    #sock.sendall(data.encode("utf-8")) #uncomment to send over to unity project. Otherwise, the values are printed
     print(data)
 
     cv2.imshow("Image", img)
