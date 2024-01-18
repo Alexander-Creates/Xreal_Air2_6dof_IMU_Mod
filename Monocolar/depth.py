@@ -1,5 +1,3 @@
-#still testing socket features
-
 import cv2
 import cvzone
 import socket
@@ -8,14 +6,17 @@ from cvzone.FaceMeshModule import FaceMeshDetector
 
 host, port = "127.0.0.1", 25001
 data = "0,0,0"
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+X_displacement = 0
+Y_displacement = 0
+d = 0
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 detector = FaceMeshDetector(maxFaces=1)
 initial = True
 
 # Connect to the server and send the data
-sock.connect((host, port))
+#sock.connect((host, port))
 
 while True:
     success, img = cap.read()
@@ -53,10 +54,11 @@ while True:
         Y_displacement = Y_pixel_displacement * d / f
 
         #X and Y values converted to string to send over TCP to unity
-        data = str(X_displacement) +","+ str(Y_displacement) + "," + str(d)
+        #data = str(X_displacement) +","+ str(Y_displacement) + "," + str(d)
     
     #sock.sendall(data.encode("utf-8")) #uncomment to send over to unity project. Otherwise, the values are printed
-    print(data)
+    #print(data)
+    print("X displacement = ", X_displacement, "Y displaement = ", Y_displacement, "depth = ", d)        
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
